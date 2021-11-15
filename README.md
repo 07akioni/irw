@@ -9,7 +9,7 @@ import { irq } from "irq";
 
 // for axios
 const request = irq({
-  request() {
+  request(config) {
     return axios(config);
   },
 });
