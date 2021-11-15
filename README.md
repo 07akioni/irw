@@ -1,21 +1,21 @@
-# irq
+# irw
 
-`irq` means `isomorphic request wrapper`.
+`irw` means `isomorphic request wrapper`.
 
 You can use it to wrap different http request client into a isomorphic way.
 
 ```ts
-import { irq } from "irq";
+import { irw } from "irw";
 
 // for axios
-const request = irq({
+const request = irw({
   request(config) {
     return axios(config);
   },
 });
 
 // for weixin miniapp
-const request = irq({
+const request = irw({
   request(config) {
     wx.request(config);
   },
