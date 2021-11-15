@@ -2,7 +2,7 @@
 
 `irw` means `isomorphic request wrapper`.
 
-You can use it to wrap different http request client into a isomorphic way.
+You can use it to wrap different http request clients into a isomorphic way.
 
 ```ts
 import { irw } from "irw";
