@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "lib": ["ESNext"],
+    "strict": true,
+    "useUnknownInCatchVariables": false,
+    "declaration": true
+  },
+  "include": [
+    "src"
+  ]
+}
