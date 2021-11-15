@@ -21,8 +21,8 @@ const request = irq({
   },
 });
 
-// use the request instance
-request.interceptor.request.use((config) => {
+// interceptor
+request.interceptors.request.use((config) => {
   return {
     ...config,
     headers: {
@@ -31,4 +31,13 @@ request.interceptor.request.use((config) => {
     },
   };
 });
+
+// request
+request.get('/url', { params: {} }).then()
+request.post('/url', { data: {} }).then()
+request({
+  url: '/url'
+  method: 'post',
+  data: {}
+}).then()
 ```

@@ -45,7 +45,7 @@ type RequestableRequestMethods<
 type RequestableInstance<
   Method extends RequestableLegalMethod = RequestableDefaultMethod
 > = {
-  interceptor: {
+  interceptors: {
     request: {
       use: (handler: InterceptHandler<RequestableConfig<Method>>) => void
     }
@@ -128,7 +128,7 @@ export function createRequestable<
   })
 
   // create instance methods
-  ;(requestable as unknown as RequestableInstance<Method>).interceptor = {
+  ;(requestable as unknown as RequestableInstance<Method>).interceptors = {
     request: {
       use(handler) {
         reqInterceptHandlers.push(handler)
