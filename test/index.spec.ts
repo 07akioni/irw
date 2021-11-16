@@ -1,7 +1,7 @@
 import axios from 'axios'
 import express from 'express'
 import { Server } from 'http'
-import { createIrw } from '../src'
+import { irw, IrwConfig } from '../src'
 
 interface TestData {
   request: {
@@ -64,13 +64,11 @@ describe('basic', () => {
 
   testDataList.forEach((testData, i) => {
     it('case ' + i, async () => {
-      const request = createIrw({
+      const request = irw({
         defaults: {
           baseUrl: 'http://localhost:1548'
         },
-        request(config) {
-          return axios(config)
-        }
+        request: axios
       })
       const resp = await request.get(testData.request.path, {
         headers: testData.request.headers,
@@ -80,14 +78,25 @@ describe('basic', () => {
     })
   })
 
+  it('has irw config in repsonse', async () => {
+    const config: IrwConfig = {
+      baseUrl: 'http://localhost:1548',
+      url: '/foo',
+      method: 'get'
+    }
+    const request = irw({
+      request: axios
+    })
+    const resp = await request(config)
+    expect(resp.request.config).toEqual(config)
+  })
+
   it('interceptor', async () => {
-    const request = createIrw({
+    const request = irw({
       defaults: {
         baseUrl: 'http://localhost:1548'
       },
-      request(config) {
-        return axios(config)
-      }
+      request: axios
     })
     request.interceptors.request.use((config) => {
       config.url += '-x'
