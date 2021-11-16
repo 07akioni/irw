@@ -7,7 +7,6 @@ import {
   IrwAdpaterResponse,
   IrwConfig,
   IrwDefaultMethod,
-  IrwDefaultResponseData,
   IrwError,
   IrwFn,
   IrwInstance,
@@ -22,22 +21,20 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
 ): Irw<Method> {
   const { defaults } = adapter
   function resolveConfig(config: IrwConfig<Method>): IrwAdapterConfig<Method> {
-    const mergedConfig = merge({}, defaults, config)
-    const { baseUrl } = mergedConfig
-    mergedConfig.url = buildURL(
-      buildFullPath(baseUrl, mergedConfig.url),
-      mergedConfig.params
+    const resolvedConfig: IrwConfig<Method> = merge({}, defaults, config)
+    const { baseUrl } = resolvedConfig
+    resolvedConfig.url = buildURL(
+      buildFullPath(baseUrl, resolvedConfig.url),
+      resolvedConfig.params
     )
-    delete mergedConfig.baseUrl
-    delete mergedConfig.params
-    return mergedConfig
+    delete resolvedConfig.baseUrl
+    delete resolvedConfig.params
+    return resolvedConfig
   }
 
   // create fn
   const reqInterceptHandlers: InterceptHandler<IrwConfig<Method>>[] = []
-  const respInterceptHandlers: InterceptHandler<
-    IrwResponse<any, Method>
-  >[] = []
+  const respInterceptHandlers: InterceptHandler<IrwResponse<any, Method>>[] = []
   const irw: IrwFn<Method> = async (config) => {
     for (const { fulfilled, rejected } of reqInterceptHandlers) {
       try {
@@ -59,22 +56,19 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
       }
     }
     let adapterReq = adapter.request(resolveConfig(config))
-    let mergedReq: Promise<IrwResponse<any, Method>> =
-      adapterReq.then(
-        (
-          resp: IrwAdpaterResponse<any>
-        ): IrwResponse<any, Method> => {
-          return Object.assign(resp, {
-            request: {
-              config
-            },
-            statusCode: 'statusCode' in resp ? resp.statusCode : resp.status
-          })
-        },
-        (err) => {
-          throw err
-        }
-      )
+    let mergedReq: Promise<IrwResponse<any, Method>> = adapterReq.then(
+      (resp: IrwAdpaterResponse<any>): IrwResponse<any, Method> => {
+        return Object.assign(resp, {
+          request: {
+            config
+          },
+          statusCode: 'statusCode' in resp ? resp.statusCode : resp.status
+        })
+      },
+      (err) => {
+        throw err
+      }
+    )
     for (const { fulfilled, rejected } of respInterceptHandlers) {
       mergedReq = mergedReq.then(fulfilled, rejected)
     }

@@ -1,8 +1,6 @@
 /**
- * The following methods are copied from axios
- */
-
-/**
+ * From axios
+ *
  * Determines whether the specified URL is absolute
  *
  * @param {string} url The URL to test
@@ -16,6 +14,8 @@ export function isAbsoluteURL(url: string): boolean {
 }
 
 /**
+ * From axios
+ *
  * Creates a new URL by combining the baseURL with the requestedURL,
  * only when the requestedURL is not already an absolute URL.
  * If the requestURL is absolute, this function returns the requestedURL untouched.
@@ -35,6 +35,8 @@ export function buildFullPath(
 }
 
 /**
+ * From axios
+ *
  * Creates a new URL by combining the specified URLs
  *
  * @param {string} baseURL The base URL
@@ -48,6 +50,7 @@ function combineURLs(baseURL: string, relativeURL: string) {
 }
 
 /**
+ * From axios
  * Build a URL by appending params to the end
  *
  * @param {string} url The base of the url (e.g., http://www.google.com)

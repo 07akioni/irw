@@ -23,7 +23,7 @@ export type IrwAdpaterResponse<
       status: number
     }
   | {
-      statusCode: number
+      statusCode: number // Both statusCode and status are compitable
     }
 ) & {
   headers: Record<string, string>
@@ -56,8 +56,7 @@ export interface IrwConfig<Method extends IrwLegalMethod = IrwDefaultMethod> {
 }
 
 export type IrwAdapterConfig<Method extends IrwLegalMethod = IrwDefaultMethod> =
-  Omit<IrwConfig<Method>, 'baseUrl' | 'params'>
-
+  Omit<IrwConfig<Method>, 'params' | 'baseUrl'>
 export interface IrwAdapter<Method extends IrwLegalMethod = IrwDefaultMethod> {
   methods?: Method[]
   defaults?: Partial<IrwConfig<Method>>
