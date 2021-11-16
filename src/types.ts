@@ -78,16 +78,16 @@ export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
   interceptors: {
     request: {
       use: (
-        fullfilled?: InterceptHandler<IrwConfig<Method>>['fulfilled'],
-        rejected?: InterceptHandler<IrwConfig<Method>>['rejected']
+        fullfilled?: IrwInterceptHandler<IrwConfig<Method>>['fulfilled'],
+        rejected?: IrwInterceptHandler<IrwConfig<Method>>['rejected']
       ) => void
     }
     response: {
       use: (
-        fullfilled?: InterceptHandler<
+        fullfilled?: IrwInterceptHandler<
           IrwResponse<IrwDefaultResponseData, Method>
         >['fulfilled'],
-        rejected?: InterceptHandler<
+        rejected?: IrwInterceptHandler<
           IrwResponse<IrwDefaultResponseData, Method>
         >['rejected']
       ) => void
@@ -110,7 +110,7 @@ export interface IrwError<Method extends IrwLegalMethod = IrwDefaultMethod>
   originalError: Error
 }
 
-export type InterceptHandler<T> = {
+export type IrwInterceptHandler<T> = {
   fulfilled?: (data: T) => T | Promise<T>
   rejected?: (error: Error) => any | Promise<any>
 }

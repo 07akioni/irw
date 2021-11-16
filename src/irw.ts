@@ -1,6 +1,5 @@
 import { merge } from 'lodash'
 import {
-  InterceptHandler,
   Irw,
   IrwAdapter,
   IrwAdapterConfig,
@@ -12,7 +11,8 @@ import {
   IrwInstance,
   IrwLegalMethod,
   IrwRequestMethods,
-  IrwResponse
+  IrwResponse,
+  IrwInterceptHandler
 } from './types'
 import { buildFullPath, buildURL } from './utils'
 
@@ -33,10 +33,12 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   }
 
   // create fn
-  const reqInterceptHandlers: InterceptHandler<IrwConfig<Method>>[] = []
-  const respInterceptHandlers: InterceptHandler<IrwResponse<any, Method>>[] = []
+  const reqIrwInterceptHandlers: IrwInterceptHandler<IrwConfig<Method>>[] = []
+  const respIrwInterceptHandlers: IrwInterceptHandler<
+    IrwResponse<any, Method>
+  >[] = []
   const irw: IrwFn<Method> = async (config) => {
-    for (const { fulfilled, rejected } of reqInterceptHandlers) {
+    for (const { fulfilled, rejected } of reqIrwInterceptHandlers) {
       try {
         if (fulfilled) {
           config = await fulfilled(config)
@@ -69,7 +71,7 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
         throw err
       }
     )
-    for (const { fulfilled, rejected } of respInterceptHandlers) {
+    for (const { fulfilled, rejected } of respIrwInterceptHandlers) {
       mergedReq = mergedReq.then(fulfilled, rejected)
     }
     return mergedReq
@@ -93,7 +95,7 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   ;(irw as unknown as IrwInstance<Method>).interceptors = {
     request: {
       use(fulfilled, rejected) {
-        reqInterceptHandlers.push({
+        reqIrwInterceptHandlers.push({
           fulfilled,
           rejected
         })
@@ -101,7 +103,7 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
     },
     response: {
       use(fulfilled, rejected) {
-        respInterceptHandlers.push({
+        respIrwInterceptHandlers.push({
           fulfilled,
           rejected
         })
