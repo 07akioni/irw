@@ -14,6 +14,11 @@ You can use it to wrap different http request clients into a isomorphic request 
 - request.xxx(url, config)
 - interceptors
 
+## Todo
+
+- progress
+- cancel
+
 ## Examples
 
 ```ts
