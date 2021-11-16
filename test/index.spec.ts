@@ -27,6 +27,17 @@ const testDataList: TestData[] = [
         foo: 'get-bar'
       }
     }
+  },
+  {
+    request: {
+      method: 'get',
+      path: '/foo-x'
+    },
+    response: {
+      data: {
+        foo: 'get-bar-x'
+      }
+    }
   }
 ]
 
@@ -62,9 +73,31 @@ describe('basic', () => {
         }
       })
       const resp = await request.get(testData.request.path, {
+        headers: testData.request.headers,
         data: testData.request.data
       })
       expect(resp.data).toEqual(testData.response.data)
+    })
+  })
+
+  it('interceptor', async () => {
+    const request = createIrw({
+      defaults: {
+        baseUrl: 'http://localhost:1548'
+      },
+      request(config) {
+        return axios(config)
+      }
+    })
+    request.interceptors.request.use({
+      fulfilled(config) {
+        config.url += '-x'
+        return config
+      }
+    })
+    const resp = await request.get('/foo')
+    expect(resp.data).toEqual({
+      foo: 'get-bar-x'
     })
   })
 })
