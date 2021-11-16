@@ -2,7 +2,7 @@
 
 `irw` means `isomorphic request wrapper`.
 
-You can use it to wrap different http request clients into a isomorphic way.
+You can use it to wrap different http request clients into a isomorphic request client.
 
 ```ts
 import { irw } from "irw";
@@ -28,6 +28,16 @@ request.interceptors.request.use((config) => {
     headers: {
       ...config.headers,
       token: "foo",
+    },
+  };
+});
+
+request.interceptors.request.use(async (config) => {
+  return {
+    ...config,
+    headers: {
+      ...config.headers,
+      token: await getToken(),
     },
   };
 });

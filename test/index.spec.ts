@@ -107,4 +107,22 @@ describe('basic', () => {
       foo: 'get-bar-x'
     })
   })
+
+  it('async interceptor', async () => {
+    const request = irw({
+      defaults: {
+        baseUrl: 'http://localhost:1548'
+      },
+      request: axios
+    })
+    request.interceptors.request.use(async (config) => {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+      config.url += '-x'
+      return config
+    })
+    const resp = await request.get('/foo')
+    expect(resp.data).toEqual({
+      foo: 'get-bar-x'
+    })
+  })
 })
