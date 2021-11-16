@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "target": "ES6",
+    "target": "ES2017",
     "lib": ["ESNext"],
     "strict": true,
+    "moduleResolution": "node",
     "useUnknownInCatchVariables": false,
     "declaration": true
   },
