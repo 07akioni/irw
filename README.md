@@ -9,16 +9,12 @@ import { irw } from "irw";
 
 // for axios
 const request = irw({
-  request(config) {
-    return axios(config);
-  },
+  request: axios
 });
 
 // for weixin miniapp
 const request = irw({
-  request(config) {
-    wx.request(config);
-  },
+  request: wx.request
 });
 
 // interceptor
