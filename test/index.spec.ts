@@ -126,24 +126,47 @@ describe('basic', () => {
     })
   })
 
-  it('responseType', async () => {
-    const request = irw({
-      defaults: {
-        baseUrl: 'http://localhost:1548'
-      },
-      request(config) {
-        return axios({
-          ...config,
-          transitional: {
-            forcedJSONParsing: false
-          }
-        })
-      }
-    })
-    const resp = await request.get('/foo', {
-      responseType: 'text'
-    })
+  describe('responseType', () => {
+    it('text', async () => {
+      const request = irw({
+        defaults: {
+          baseUrl: 'http://localhost:1548'
+        },
+        request(config) {
+          return axios({
+            ...config,
+            transitional: {
+              forcedJSONParsing: false
+            }
+          })
+        }
+      })
+      const resp = await request.get('/foo', {
+        responseType: 'text'
+      })
 
-    expect(resp.data).toEqual('{"foo":"get-bar"}')
+      expect(resp.data).toEqual('{"foo":"get-bar"}')
+    })
+    it('arraybuffer', async () => {
+      const request = irw({
+        defaults: {
+          baseUrl: 'http://localhost:1548'
+        },
+        request(config) {
+          return axios({
+            ...config,
+            transitional: {
+              forcedJSONParsing: false
+            }
+          })
+        }
+      })
+      const resp = await request.get('/foo', {
+        responseType: 'arraybuffer'
+      })
+
+      expect(resp.data instanceof Buffer).toEqual(true)
+      expect(resp.data.toString()).toEqual('{"foo":"get-bar"}')
+    })
   })
 })
