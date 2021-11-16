@@ -125,4 +125,25 @@ describe('basic', () => {
       foo: 'get-bar-x'
     })
   })
+
+  it('responseType', async () => {
+    const request = irw({
+      defaults: {
+        baseUrl: 'http://localhost:1548'
+      },
+      request(config) {
+        return axios({
+          ...config,
+          transitional: {
+            forcedJSONParsing: false
+          }
+        })
+      }
+    })
+    const resp = await request.get('/foo', {
+      responseType: 'text'
+    })
+
+    expect(resp.data).toEqual('{"foo":"get-bar"}')
+  })
 })

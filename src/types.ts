@@ -53,6 +53,7 @@ export interface IrwConfig<Method extends IrwLegalMethod = IrwDefaultMethod> {
   method?: Method
   params?: Record<string, string | number>
   data?: Record<string, string> | string | ArrayBuffer
+  responseType?: 'text' | 'json' | 'arraybuffer'
 }
 
 export type IrwAdapterConfig<Method extends IrwLegalMethod = IrwDefaultMethod> =
