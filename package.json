@@ -1,11 +1,14 @@
 {
   "name": "irw",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "description": "isomorphic request wrapper",
+  "main": "lib/index.js",
+  "module": "es/index.js",
+  "types": "es/index.d.ts",
   "scripts": {
     "build": "node scripts/use-lodash.js && tsc -p tsconfig.cjs.json && node scripts/use-lodash-es.js && tsc -p tsconfig.esm.json && node scripts/use-lodash.js",
-    "test": "jest test/*"
+    "test": "jest test/*",
+    "release": "pnpm run build && pnpm publish"
   },
   "author": "07akioni",
   "license": "MIT",
@@ -24,5 +27,9 @@
     "@types/lodash-es": "^4.17.5",
     "lodash": "^4.17.21",
     "lodash-es": "^4.17.21"
-  }
+  },
+  "files": [
+    "es",
+    "lib"
+  ]
 }
