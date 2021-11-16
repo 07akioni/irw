@@ -1,84 +1,76 @@
 import { merge } from 'lodash-es'
 import {
-  RequestableDefaultMethod,
-  RequestableHeaders,
-  RequestableLegalMethod,
-  RequestableResponse,
-  RequestableResponseDataType
+  IrwDefaultMethod,
+  IrwHeaders,
+  IrwLegalMethod,
+  IrwResponse,
+  IrwResponseDataType
 } from './types'
 import { buildFullPath, buildURL } from './utils'
 
-interface RequestableConfig<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
-> {
+export interface IrwConfig<Method extends IrwLegalMethod = IrwDefaultMethod> {
   baseUrl?: string
   url: string
-  header?: RequestableHeaders
+  headers?: IrwHeaders
   method?: Method
   params?: Record<string, string | number>
   data?: Record<string, string> | string | ArrayBuffer
 }
 
-type RequestableAdapterConfig<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
-> = Omit<RequestableConfig<Method>, 'baseUrl' | 'params'>
+export type IrwAdapterConfig<Method extends IrwLegalMethod = IrwDefaultMethod> =
+  Omit<IrwConfig<Method>, 'baseUrl' | 'params'>
 
-interface RequestableAdapter<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
-> {
+export interface IrwAdapter<Method extends IrwLegalMethod = IrwDefaultMethod> {
   methods: Method[]
-  defaults: RequestableConfig<Method>
-  request(config: RequestableAdapterConfig<Method>): Promise<any>
+  defaults: IrwConfig<Method>
+  request(config: IrwAdapterConfig<Method>): Promise<any>
 }
 
-type RequestableRequestMethods<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
+export type IrwRequestMethods<
+  Method extends IrwLegalMethod = IrwDefaultMethod
 > = {
-  [key in Method]: <
-    Data extends RequestableResponseDataType = RequestableResponseDataType
-  >(
+  [key in Method]: <Data extends IrwResponseDataType = IrwResponseDataType>(
     url: string,
-    config: RequestableConfig<Method>
-  ) => Promise<RequestableResponse<Data>>
+    config: IrwConfig<Method>
+  ) => Promise<IrwResponse<Data>>
 }
 
-type RequestableInstance<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
-> = {
+export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
   interceptors: {
     request: {
-      use: (handler: InterceptHandler<RequestableConfig<Method>>) => void
+      use: (handler: InterceptHandler<IrwConfig<Method>>) => void
     }
     response: {
-      use: (handler: InterceptHandler<RequestableResponse>) => void
+      use: (handler: InterceptHandler<IrwResponse>) => void
     }
   }
 }
 
-type RequestableFn<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
-> = <Data extends RequestableResponseDataType = RequestableResponseDataType>(
-  config: RequestableConfig<Method>
-) => Promise<RequestableResponse<Data>>
+export type IrwFn<Method extends IrwLegalMethod = IrwDefaultMethod> = <
+  Data extends IrwResponseDataType = IrwResponseDataType
+>(
+  config: IrwConfig<Method>
+) => Promise<IrwResponse<Data>>
 
-type Requestable<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
-> = RequestableFn<Method> &
-  RequestableRequestMethods<Method> &
-  RequestableInstance
+export type Irw<Method extends IrwLegalMethod = IrwDefaultMethod> =
+  IrwFn<Method> & IrwRequestMethods<Method> & IrwInstance
 
-type InterceptHandler<T> = {
+export interface IrwError<Method extends IrwLegalMethod = IrwDefaultMethod>
+  extends Error {
+  irwConfig: IrwConfig<Method>
+  isIrwError: boolean
+}
+
+export type InterceptHandler<T> = {
   fulfilled?: (data: T) => T
   rejected?: (error: Error) => void
 }
 
-export function createRequestable<
-  Method extends RequestableLegalMethod = RequestableDefaultMethod
->(adapter: RequestableAdapter<Method>): Requestable<Method> {
+export function createIrw<Method extends IrwLegalMethod = IrwDefaultMethod>(
+  adapter: IrwAdapter<Method>
+): Irw<Method> {
   const { defaults } = adapter
-  function resolveConfig(
-    config: RequestableConfig<Method>
-  ): RequestableAdapterConfig<Method> {
+  function resolveConfig(config: IrwConfig<Method>): IrwAdapterConfig<Method> {
     const mergedConfig = merge({}, defaults, config)
     const { baseUrl } = mergedConfig
     mergedConfig.url = buildURL(
@@ -91,15 +83,18 @@ export function createRequestable<
   }
 
   // create fn
-  const reqInterceptHandlers: InterceptHandler<RequestableConfig<Method>>[] = []
-  const respInterceptHandlers: InterceptHandler<RequestableResponse>[] = []
-  const requestable: RequestableFn<Method> = async (config) => {
+  const reqInterceptHandlers: InterceptHandler<IrwConfig<Method>>[] = []
+  const respInterceptHandlers: InterceptHandler<IrwResponse>[] = []
+  const requestable: IrwFn<Method> = async (config) => {
     for (const { fulfilled, rejected } of reqInterceptHandlers) {
       try {
         if (fulfilled) {
           config = await fulfilled(config)
         }
       } catch (err) {
+        let irwError: IrwError<Method> = err
+        irwError.irwConfig = config
+        irwError.isIrwError = true
         if (rejected) {
           await rejected(err)
         }
@@ -116,19 +111,19 @@ export function createRequestable<
   // create request methods
   const { methods } = adapter
   methods.forEach((key) => {
-    ;(requestable as unknown as RequestableRequestMethods<Method>)[key] =
-      async (url, config) => {
-        let mergedConfig: RequestableConfig<Method> = merge(
-          { method: key },
-          config,
-          { url }
-        )
-        return await requestable(mergedConfig)
-      }
+    ;(requestable as unknown as IrwRequestMethods<Method>)[key] = async (
+      url,
+      config
+    ) => {
+      let mergedConfig: IrwConfig<Method> = merge({ method: key }, config, {
+        url
+      })
+      return await requestable(mergedConfig)
+    }
   })
 
   // create instance methods
-  ;(requestable as unknown as RequestableInstance<Method>).interceptors = {
+  ;(requestable as unknown as IrwInstance<Method>).interceptors = {
     request: {
       use(handler) {
         reqInterceptHandlers.push(handler)
@@ -141,5 +136,5 @@ export function createRequestable<
     }
   }
 
-  return requestable as Requestable<Method>
+  return requestable as Irw<Method>
 }

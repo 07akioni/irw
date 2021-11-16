@@ -1,4 +1,4 @@
-export type RequestableLegalMethod =
+export type IrwLegalMethod =
   | 'get'
   | 'GET'
   | 'delete'
@@ -20,7 +20,7 @@ export type RequestableLegalMethod =
   | 'unlink'
   | 'UNLINK'
 
-export type RequestableDefaultMethod =
+export type IrwDefaultMethod =
   | 'get'
   | 'GET'
   | 'post'
@@ -28,16 +28,16 @@ export type RequestableDefaultMethod =
   | 'put'
   | 'PUT'
 
-export type RequestableResponseDataType = object | string | ArrayBuffer
+export type IrwResponseDataType = object | string | ArrayBuffer
 
-export type RequestableResponse<
-  Data extends RequestableResponseDataType = RequestableResponseDataType
+export type IrwResponse<
+  Data extends IrwResponseDataType = IrwResponseDataType
 > = {
   statusCode: number
   header: Record<string, string>
   data: Data
 }
 
-export type RequestableDefaultResponse = RequestableResponse
+export type IrwDefaultResponse = IrwResponse
 
-export type RequestableHeaders = Record<string, string>
+export type IrwHeaders = Record<string, string>
