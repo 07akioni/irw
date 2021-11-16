@@ -21,8 +21,8 @@ export type IrwAdapterConfig<Method extends IrwLegalMethod = IrwDefaultMethod> =
   Omit<IrwConfig<Method>, 'baseUrl' | 'params'>
 
 export interface IrwAdapter<Method extends IrwLegalMethod = IrwDefaultMethod> {
-  methods: Method[]
-  defaults: IrwConfig<Method>
+  methods?: Method[]
+  defaults?: Partial<IrwConfig<Method>>
   request(config: IrwAdapterConfig<Method>): Promise<any>
 }
 
@@ -31,7 +31,7 @@ export type IrwRequestMethods<
 > = {
   [key in Method]: <Data extends IrwResponseDataType = IrwResponseDataType>(
     url: string,
-    config: IrwConfig<Method>
+    config?: Omit<IrwConfig<Method>, 'url'>
   ) => Promise<IrwResponse<Data>>
 }
 
@@ -85,7 +85,7 @@ export function createIrw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   // create fn
   const reqInterceptHandlers: InterceptHandler<IrwConfig<Method>>[] = []
   const respInterceptHandlers: InterceptHandler<IrwResponse>[] = []
-  const requestable: IrwFn<Method> = async (config) => {
+  const irw: IrwFn<Method> = async (config) => {
     for (const { fulfilled, rejected } of reqInterceptHandlers) {
       try {
         if (fulfilled) {
@@ -109,21 +109,21 @@ export function createIrw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   }
 
   // create request methods
-  const { methods } = adapter
+  const { methods = ['get', 'post', 'put'] as Method[] } = adapter
   methods.forEach((key) => {
-    ;(requestable as unknown as IrwRequestMethods<Method>)[key] = async (
+    ;(irw as unknown as IrwRequestMethods<Method>)[key] = async (
       url,
       config
     ) => {
       let mergedConfig: IrwConfig<Method> = merge({ method: key }, config, {
         url
       })
-      return await requestable(mergedConfig)
+      return await irw(mergedConfig)
     }
   })
 
   // create instance methods
-  ;(requestable as unknown as IrwInstance<Method>).interceptors = {
+  ;(irw as unknown as IrwInstance<Method>).interceptors = {
     request: {
       use(handler) {
         reqInterceptHandlers.push(handler)
@@ -136,5 +136,5 @@ export function createIrw<Method extends IrwLegalMethod = IrwDefaultMethod>(
     }
   }
 
-  return requestable as Irw<Method>
+  return irw as Irw<Method>
 }

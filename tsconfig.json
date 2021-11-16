@@ -4,10 +4,12 @@
     "lib": ["ESNext"],
     "strict": true,
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "useUnknownInCatchVariables": false,
     "declaration": true
   },
   "include": [
-    "src"
+    "src",
+    "test"
   ]
 }
