@@ -18,8 +18,14 @@ export type IrwDefaultResponseData = IrwResponseData
 
 export type IrwAdpaterResponse<
   Data extends IrwResponseData = IrwDefaultResponseData
-> = {
-  status: number
+> = (
+  | {
+      status: number
+    }
+  | {
+      statusCode: number
+    }
+) & {
   headers: Record<string, string>
   data: Data
 }
@@ -31,7 +37,7 @@ export type IrwResponse<
   request: {
     config: IrwConfig<Method>
   }
-  status: number
+  statusCode: number
   headers: Record<string, string>
   data: Data
 }
@@ -55,7 +61,9 @@ export type IrwAdapterConfig<Method extends IrwLegalMethod = IrwDefaultMethod> =
 export interface IrwAdapter<Method extends IrwLegalMethod = IrwDefaultMethod> {
   methods?: Method[]
   defaults?: Partial<IrwConfig<Method>>
-  request(config: IrwAdapterConfig<Method>): Promise<IrwAdpaterResponse<any>>
+  request(
+    config: IrwAdapterConfig<Method>
+  ): Promise<IrwAdpaterResponse<IrwDefaultResponseData>>
 }
 
 export type IrwRequestMethods<
@@ -89,7 +97,7 @@ export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
 }
 
 export type IrwFn<Method extends IrwLegalMethod = IrwDefaultMethod> = <
-  Data extends IrwResponseData = IrwResponseData
+  Data extends IrwResponseData = IrwDefaultResponseData
 >(
   config: IrwConfig<Method>
 ) => Promise<IrwResponse<Data, Method>>

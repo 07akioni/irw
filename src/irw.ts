@@ -36,7 +36,7 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   // create fn
   const reqInterceptHandlers: InterceptHandler<IrwConfig<Method>>[] = []
   const respInterceptHandlers: InterceptHandler<
-    IrwResponse<IrwDefaultResponseData, Method>
+    IrwResponse<any, Method>
   >[] = []
   const irw: IrwFn<Method> = async (config) => {
     for (const { fulfilled, rejected } of reqInterceptHandlers) {
@@ -59,21 +59,22 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
       }
     }
     let adapterReq = adapter.request(resolveConfig(config))
-    let mergedReq: Promise<IrwResponse<any, Method>> = adapterReq.then(
-      (resp: IrwAdpaterResponse<any>) => {
-        let mergedResp: IrwResponse<any, Method> = resp as IrwResponse<
-          any,
-          Method
-        >
-        mergedResp.request = {
-          config
+    let mergedReq: Promise<IrwResponse<any, Method>> =
+      adapterReq.then(
+        (
+          resp: IrwAdpaterResponse<any>
+        ): IrwResponse<any, Method> => {
+          return Object.assign(resp, {
+            request: {
+              config
+            },
+            statusCode: 'statusCode' in resp ? resp.statusCode : resp.status
+          })
+        },
+        (err) => {
+          throw err
         }
-        return mergedResp
-      },
-      (err) => {
-        throw err
-      }
-    )
+      )
     for (const { fulfilled, rejected } of respInterceptHandlers) {
       mergedReq = mergedReq.then(fulfilled, rejected)
     }
