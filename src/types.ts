@@ -111,6 +111,6 @@ export interface IrwError<Method extends IrwLegalMethod = IrwDefaultMethod>
 }
 
 export type InterceptHandler<T> = {
-  fulfilled?: (data: T) => T
-  rejected?: (error: Error) => any
+  fulfilled?: (data: T) => T | Promise<T>
+  rejected?: (error: Error) => any | Promise<any>
 }
