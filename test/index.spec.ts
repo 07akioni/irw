@@ -89,11 +89,9 @@ describe('basic', () => {
         return axios(config)
       }
     })
-    request.interceptors.request.use({
-      fulfilled(config) {
-        config.url += '-x'
-        return config
-      }
+    request.interceptors.request.use((config) => {
+      config.url += '-x'
+      return config
     })
     const resp = await request.get('/foo')
     expect(resp.data).toEqual({

@@ -38,10 +38,16 @@ export type IrwRequestMethods<
 export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
   interceptors: {
     request: {
-      use: (handler: InterceptHandler<IrwConfig<Method>>) => void
+      use: (
+        fullfilled?: InterceptHandler<IrwConfig<Method>>['fulfilled'],
+        rejected?: InterceptHandler<IrwConfig<Method>>['rejected']
+      ) => void
     }
     response: {
-      use: (handler: InterceptHandler<IrwResponse>) => void
+      use: (
+        fullfilled?: InterceptHandler<IrwResponse>['fulfilled'],
+        rejected?: InterceptHandler<IrwResponse>['rejected']
+      ) => void
     }
   }
 }
@@ -125,13 +131,17 @@ export function createIrw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   // create instance methods
   ;(irw as unknown as IrwInstance<Method>).interceptors = {
     request: {
-      use(handler) {
-        reqInterceptHandlers.push(handler)
+      use(fulfilled, rejected) {
+        reqInterceptHandlers.push({
+          fulfilled, rejected
+        })
       }
     },
     response: {
-      use(handler) {
-        respInterceptHandlers.push(handler)
+      use(fulfilled, rejected) {
+        respInterceptHandlers.push({
+          fulfilled, rejected
+        })
       }
     }
   }
