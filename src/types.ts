@@ -107,11 +107,13 @@ export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
   }
 }
 
+export type IrwHandle = { abort: () => void }
+
 export type IrwFn<Method extends IrwLegalMethod = IrwDefaultMethod> = <
   Data extends IrwResponseData = IrwDefaultResponseData
 >(
   config: IrwConfig<Method>
-) => Promise<IrwResponse<Data, Method>> & { abort: () => void }
+) => Promise<IrwResponse<Data, Method>> & IrwHandle
 
 export type Irw<Method extends IrwLegalMethod = IrwDefaultMethod> =
   IrwFn<Method> & IrwRequestMethods<Method> & IrwInstance

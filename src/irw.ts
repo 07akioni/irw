@@ -1,5 +1,4 @@
 import { merge } from 'lodash'
-import { IrwAdapterSetup, IrwAdapterSetupOptions } from '.'
 import {
   Irw,
   IrwAdapter,
@@ -13,7 +12,10 @@ import {
   IrwLegalMethod,
   IrwRequestMethods,
   IrwResponse,
-  IrwInterceptHandler
+  IrwInterceptHandler,
+  IrwAdapterSetup,
+  IrwAdapterSetupOptions,
+  IrwHandle
 } from './types'
 import { buildFullPath, buildURL } from './utils'
 
@@ -54,9 +56,13 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
       _onDownloadProgress = onDownloadProgress
       _onUploadProgress = onUploadProgress
     }
-    let abortHandle: { abort: () => void } = {
+    let abortHandle: IrwHandle = {
       abort: () => {
-        _onAbort?.()
+        if (!_onAbort) {
+          console.error('[irw]: `onAbort` is not setup')
+          return
+        }
+        _onAbort()
       }
     }
     const resolveRequest = async () => {
