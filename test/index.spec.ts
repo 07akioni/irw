@@ -169,4 +169,25 @@ describe('basic', () => {
       expect(resp.data.toString()).toEqual('{"foo":"get-bar"}')
     })
   })
+
+  it('abort', () => {
+    const request = irw({
+      request(config, setup) {
+        const CancelToken = axios.CancelToken
+        const source = CancelToken.source()
+        setup({
+          isAbort(error) {
+            return axios.isCancel(error)
+          },
+          onAbort() {
+            source.cancel()
+          }
+        })
+        return axios({
+          ...config,
+          cancelToken: source.token
+        })
+      }
+    })
+  })
 })

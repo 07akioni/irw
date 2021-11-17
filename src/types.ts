@@ -58,11 +58,22 @@ export interface IrwConfig<Method extends IrwLegalMethod = IrwDefaultMethod> {
 
 export type IrwAdapterConfig<Method extends IrwLegalMethod = IrwDefaultMethod> =
   Omit<IrwConfig<Method>, 'params' | 'baseUrl'>
+
+export type IrwAdapterSetupOptions = {
+  isAbort?: (err: Error) => boolean
+  onAbort?: () => void
+  onUploadProgress?: () => void
+  onDownloadProgress?: () => void
+}
+
+export type IrwAdapterSetup = (options: IrwAdapterSetupOptions) => void
+
 export interface IrwAdapter<Method extends IrwLegalMethod = IrwDefaultMethod> {
   methods?: Method[]
   defaults?: Partial<IrwConfig<Method>>
   request(
-    config: IrwAdapterConfig<Method>
+    config: IrwAdapterConfig<Method>,
+    setup: IrwAdapterSetup
   ): Promise<IrwAdpaterResponse<IrwDefaultResponseData>>
 }
 
@@ -72,7 +83,7 @@ export type IrwRequestMethods<
   [key in Method]: <Data extends IrwResponseData = IrwResponseData>(
     url: string,
     config?: Omit<IrwConfig<Method>, 'url'>
-  ) => Promise<IrwResponse<Data, Method>>
+  ) => Promise<IrwResponse<Data, Method>> & { abort: () => void }
 }
 
 export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
@@ -100,13 +111,14 @@ export type IrwFn<Method extends IrwLegalMethod = IrwDefaultMethod> = <
   Data extends IrwResponseData = IrwDefaultResponseData
 >(
   config: IrwConfig<Method>
-) => Promise<IrwResponse<Data, Method>>
+) => Promise<IrwResponse<Data, Method>> & { abort: () => void }
 
 export type Irw<Method extends IrwLegalMethod = IrwDefaultMethod> =
   IrwFn<Method> & IrwRequestMethods<Method> & IrwInstance
 
 export interface IrwError<Method extends IrwLegalMethod = IrwDefaultMethod>
   extends Error {
+  isAbort: boolean
   config: IrwConfig<Method>
   originalError: Error
 }

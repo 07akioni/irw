@@ -1,4 +1,5 @@
 import { merge } from 'lodash'
+import { IrwAdapterSetup, IrwAdapterSetupOptions } from '.'
 import {
   Irw,
   IrwAdapter,
@@ -37,28 +38,52 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   const respIrwInterceptHandlers: IrwInterceptHandler<
     IrwResponse<any, Method>
   >[] = []
-  const irw: IrwFn<Method> = async (config) => {
-    for (const { fulfilled, rejected } of reqIrwInterceptHandlers) {
-      try {
-        if (fulfilled) {
-          config = await fulfilled(config)
-        }
-      } catch (err) {
-        let irwError: IrwError<Method> = {
-          name: err.name,
-          config: config,
-          message: err.message,
-          stack: err.stack,
-          originalError: err
-        }
-        if (rejected) {
-          await rejected(irwError)
-        }
-        break
+  const irw: IrwFn<Method> = (config) => {
+    let _isAbort: IrwAdapterSetupOptions['isAbort']
+    let _onAbort: IrwAdapterSetupOptions['onAbort']
+    let _onDownloadProgress: IrwAdapterSetupOptions['onDownloadProgress']
+    let _onUploadProgress: IrwAdapterSetupOptions['onUploadProgress']
+    const setup: IrwAdapterSetup = ({
+      isAbort,
+      onAbort,
+      onDownloadProgress,
+      onUploadProgress
+    }) => {
+      _isAbort = isAbort
+      _onAbort = onAbort
+      _onDownloadProgress = onDownloadProgress
+      _onUploadProgress = onUploadProgress
+    }
+    let abortHandle: { abort: () => void } = {
+      abort: () => {
+        _onAbort?.()
       }
     }
-    let adapterReq = adapter.request(resolveConfig(config))
-    let mergedReq: Promise<IrwResponse<any, Method>> = adapterReq.then(
+    const resolveRequest = async () => {
+      for (const { fulfilled, rejected } of reqIrwInterceptHandlers) {
+        try {
+          if (fulfilled) {
+            config = await fulfilled(config)
+          }
+        } catch (err) {
+          let isAbort = _isAbort?.(err) || false
+          let irwError: IrwError<Method> = {
+            isAbort,
+            name: err.name,
+            config: config,
+            message: err.message,
+            stack: err.stack,
+            originalError: err
+          }
+          if (rejected) {
+            await rejected(irwError)
+          }
+          break
+        }
+      }
+      return adapter.request(resolveConfig(config), setup)
+    }
+    let mergedReq: Promise<IrwResponse<any, Method>> = resolveRequest().then(
       (resp: IrwAdpaterResponse<any>): IrwResponse<any, Method> => {
         return Object.assign(resp, {
           request: {
@@ -74,20 +99,17 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
     for (const { fulfilled, rejected } of respIrwInterceptHandlers) {
       mergedReq = mergedReq.then(fulfilled, rejected)
     }
-    return mergedReq
+    return Object.assign(mergedReq, abortHandle)
   }
 
   // create request methods
   const { methods = ['get', 'post', 'put'] as Method[] } = adapter
   methods.forEach((key) => {
-    ;(irw as unknown as IrwRequestMethods<Method>)[key] = async (
-      url,
-      config
-    ) => {
+    ;(irw as unknown as IrwRequestMethods<Method>)[key] = (url, config) => {
       let mergedConfig: IrwConfig<Method> = merge({ method: key }, config, {
         url
       })
-      return await irw(mergedConfig)
+      return irw(mergedConfig)
     }
   })
 
