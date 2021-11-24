@@ -5,11 +5,10 @@ import {
   IrwAdapterConfig,
   IrwAdpaterResponse,
   IrwConfig,
-  IrwDefaultMethod,
   IrwError,
   IrwFn,
   IrwInstance,
-  IrwLegalMethod,
+  IrwMethod,
   IrwRequestMethods,
   IrwResponse,
   IrwInterceptHandler,
@@ -19,12 +18,12 @@ import {
 } from './types'
 import { buildFullPath, buildURL } from './utils'
 
-export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
-  adapter: IrwAdapter<Method>
-): Irw<Method> {
+export function irw(
+  adapter: IrwAdapter
+): Irw {
   const { defaults } = adapter
-  function resolveConfig(config: IrwConfig<Method>): IrwAdapterConfig<Method> {
-    const resolvedConfig: IrwConfig<Method> = merge({}, defaults, config)
+  function resolveConfig(config: IrwConfig): IrwAdapterConfig {
+    const resolvedConfig: IrwConfig = merge({}, defaults, config)
     const { baseUrl } = resolvedConfig
     resolvedConfig.url = buildURL(
       buildFullPath(baseUrl, resolvedConfig.url),
@@ -36,11 +35,11 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   }
 
   // create fn
-  const reqIrwInterceptHandlers: IrwInterceptHandler<IrwConfig<Method>>[] = []
+  const reqIrwInterceptHandlers: IrwInterceptHandler<IrwConfig>[] = []
   const respIrwInterceptHandlers: IrwInterceptHandler<
-    IrwResponse<any, Method>
+    IrwResponse<any>
   >[] = []
-  const irw: IrwFn<Method> = (config) => {
+  const irw: IrwFn = (config) => {
     let _isAbort: IrwAdapterSetupOptions['isAbort']
     let _onAbort: IrwAdapterSetupOptions['onAbort']
     let _onDownloadProgress: IrwAdapterSetupOptions['onDownloadProgress']
@@ -73,7 +72,7 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
           }
         } catch (err) {
           let isAbort = _isAbort?.(err) || false
-          let irwError: IrwError<Method> = {
+          let irwError: IrwError = {
             isAbort,
             name: err.name,
             config: config,
@@ -89,8 +88,8 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
       }
       return adapter.request(resolveConfig(config), setup)
     }
-    let mergedReq: Promise<IrwResponse<any, Method>> = resolveRequest().then(
-      (resp: IrwAdpaterResponse<any>): IrwResponse<any, Method> => {
+    let mergedReq: Promise<IrwResponse<any>> = resolveRequest().then(
+      (resp: IrwAdpaterResponse<any>): IrwResponse<any> => {
         return Object.assign(resp, {
           request: {
             config
@@ -109,10 +108,10 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   }
 
   // create request methods
-  const { methods = ['get', 'post', 'put'] as Method[] } = adapter
+  const { methods = ['get', 'post', 'put'] as IrwMethod[] } = adapter
   methods.forEach((key) => {
-    ;(irw as unknown as IrwRequestMethods<Method>)[key] = (url, config) => {
-      let mergedConfig: IrwConfig<Method> = merge({ method: key }, config, {
+    ;(irw as unknown as IrwRequestMethods)[key] = (url, config) => {
+      let mergedConfig: IrwConfig = merge({ method: key }, config, {
         url
       })
       return irw(mergedConfig)
@@ -120,7 +119,7 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
   })
 
   // create instance methods
-  ;(irw as unknown as IrwInstance<Method>).interceptors = {
+  ;(irw as unknown as IrwInstance).interceptors = {
     request: {
       use(fulfilled, rejected) {
         reqIrwInterceptHandlers.push({
@@ -139,5 +138,5 @@ export function irw<Method extends IrwLegalMethod = IrwDefaultMethod>(
     }
   }
 
-  return irw as Irw<Method>
+  return irw as Irw
 }

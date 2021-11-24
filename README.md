@@ -11,7 +11,9 @@ You can use it to wrap different http request clients into a isomorphic request 
 ## Features
 
 - request(config)
-- request.xxx(url, config)
+- request.get(url, config)
+- request.post(url, config)
+- request.put(url, config)
 - interceptors
 
 ## Todo
@@ -59,8 +61,10 @@ request.interceptors.request.use(async (config) => {
 });
 
 // request
+// Currently only get, post and post is supports
 request.get('/url', { params: {} }).then()
-request.post('/url', { data: {} }).then()
+request.post('/url', { data: {}, params: {} }).then()
+request.put('/url', { data: {}, params: {} }).then()
 request({
   url: '/url'
   method: 'post',

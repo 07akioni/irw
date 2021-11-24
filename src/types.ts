@@ -1,16 +1,11 @@
-export type IrwLegalMethod =
-  | 'get'
-  | 'delete'
-  | 'head'
-  | 'options'
-  | 'post'
-  | 'put'
-  | 'patch'
-  | 'purge'
-  | 'link'
-  | 'unlink'
-
-export type IrwDefaultMethod = 'get' | 'post' | 'put'
+export type IrwMethod = 'get' | 'post' | 'put'
+// | 'delete'
+// | 'head'
+// | 'options'
+// | 'patch'
+// | 'purge'
+// | 'link'
+// | 'unlink'
 
 export type IrwResponseData = object | string | ArrayBuffer
 
@@ -30,34 +25,31 @@ export type IrwAdpaterResponse<
   data: Data
 }
 
-export type IrwResponse<
-  Data extends IrwResponseData = IrwDefaultResponseData,
-  Method extends IrwLegalMethod = IrwDefaultMethod
-> = {
-  request: {
-    config: IrwConfig<Method>
+export type IrwResponse<Data extends IrwResponseData = IrwDefaultResponseData> =
+  {
+    request: {
+      config: IrwConfig
+    }
+    statusCode: number
+    headers: Record<string, string>
+    data: Data
   }
-  statusCode: number
-  headers: Record<string, string>
-  data: Data
-}
 
 export type IrwDefaultResponse = IrwResponse
 
 export type IrwHeaders = Record<string, string>
 
-export interface IrwConfig<Method extends IrwLegalMethod = IrwDefaultMethod> {
+export interface IrwConfig {
   baseUrl?: string
   url: string
   headers?: IrwHeaders
-  method?: Method
+  method?: IrwMethod
   params?: Record<string, string | number>
   data?: Record<string, string> | string | ArrayBuffer
   responseType?: 'text' | 'json' | 'arraybuffer'
 }
 
-export type IrwAdapterConfig<Method extends IrwLegalMethod = IrwDefaultMethod> =
-  Omit<IrwConfig<Method>, 'params' | 'baseUrl'>
+export type IrwAdapterConfig = Omit<IrwConfig, 'params' | 'baseUrl'>
 
 export type IrwAdapterSetupOptions = {
   isAbort?: (err: Error) => boolean
@@ -68,39 +60,37 @@ export type IrwAdapterSetupOptions = {
 
 export type IrwAdapterSetup = (options: IrwAdapterSetupOptions) => void
 
-export interface IrwAdapter<Method extends IrwLegalMethod = IrwDefaultMethod> {
-  methods?: Method[]
-  defaults?: Partial<IrwConfig<Method>>
+export interface IrwAdapter {
+  methods?: IrwMethod[]
+  defaults?: Partial<IrwConfig>
   request(
-    config: IrwAdapterConfig<Method>,
+    config: IrwAdapterConfig,
     setup: IrwAdapterSetup
   ): Promise<IrwAdpaterResponse<IrwDefaultResponseData>>
 }
 
-export type IrwRequestMethods<
-  Method extends IrwLegalMethod = IrwDefaultMethod
-> = {
-  [key in Method]: <Data extends IrwResponseData = IrwResponseData>(
+export type IrwRequestMethods = {
+  [key in IrwMethod]: <Data extends IrwResponseData = IrwResponseData>(
     url: string,
-    config?: Omit<IrwConfig<Method>, 'url'>
-  ) => Promise<IrwResponse<Data, Method>> & { abort: () => void }
+    config?: Omit<IrwConfig, 'url'>
+  ) => Promise<IrwResponse<Data>> & { abort: () => void }
 }
 
-export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
+export type IrwInstance = {
   interceptors: {
     request: {
       use: (
-        fullfilled?: IrwInterceptHandler<IrwConfig<Method>>['fulfilled'],
-        rejected?: IrwInterceptHandler<IrwConfig<Method>>['rejected']
+        fullfilled?: IrwInterceptHandler<IrwConfig>['fulfilled'],
+        rejected?: IrwInterceptHandler<IrwConfig>['rejected']
       ) => void
     }
     response: {
       use: (
         fullfilled?: IrwInterceptHandler<
-          IrwResponse<IrwDefaultResponseData, Method>
+          IrwResponse<IrwDefaultResponseData>
         >['fulfilled'],
         rejected?: IrwInterceptHandler<
-          IrwResponse<IrwDefaultResponseData, Method>
+          IrwResponse<IrwDefaultResponseData>
         >['rejected']
       ) => void
     }
@@ -109,19 +99,15 @@ export type IrwInstance<Method extends IrwLegalMethod = IrwDefaultMethod> = {
 
 export type IrwHandle = { abort: () => void }
 
-export type IrwFn<Method extends IrwLegalMethod = IrwDefaultMethod> = <
-  Data extends IrwResponseData = IrwDefaultResponseData
->(
-  config: IrwConfig<Method>
-) => Promise<IrwResponse<Data, Method>> & IrwHandle
+export type IrwFn = <Data extends IrwResponseData = IrwDefaultResponseData>(
+  config: IrwConfig
+) => Promise<IrwResponse<Data>> & IrwHandle
 
-export type Irw<Method extends IrwLegalMethod = IrwDefaultMethod> =
-  IrwFn<Method> & IrwRequestMethods<Method> & IrwInstance
+export type Irw = IrwFn & IrwRequestMethods & IrwInstance
 
-export interface IrwError<Method extends IrwLegalMethod = IrwDefaultMethod>
-  extends Error {
+export interface IrwError extends Error {
   isAbort: boolean
-  config: IrwConfig<Method>
+  config: IrwConfig
   originalError: Error
 }
 
