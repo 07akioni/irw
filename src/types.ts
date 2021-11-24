@@ -66,7 +66,7 @@ export interface IrwAdapter {
   request(
     config: IrwAdapterConfig,
     setup: IrwAdapterSetup
-  ): Promise<IrwAdpaterResponse<IrwDefaultResponseData>>
+  ): Promise<IrwAdpaterResponse>
 }
 
 export type IrwRequestMethods = {
